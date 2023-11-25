@@ -2,6 +2,14 @@
 
 namespace Redis.Api.Repository
 {
+    public interface IProductRepository
+    {
+        Task<List<Product>> GetProductsAsync();
+        Task<Product> GetProductAsync(int id);
+        Task<Product> CreateProductAsync(Product product);
+        Task UpdateProductAsync(Product product);
+        Task DeleteProductAsync(int id);
+    }
     public class ProductRepository : IProductRepository
     {
         private readonly AppDbContext _context;
@@ -28,9 +36,9 @@ namespace Redis.Api.Repository
             return  await _context.Products.FindAsync(id);
         }
 
-        public Task<IEnumerable<Product>> GetProductsAsync()
+        public Task<List<Product>> GetProductsAsync()
         { 
-            return Task.FromResult<IEnumerable<Product>>(_context.Products.ToList());
+            return Task.FromResult<List<Product>>(_context.Products.ToList());
         }
 
         public Task UpdateProductAsync(Product product)

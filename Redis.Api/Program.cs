@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Redis.Api.Moldes;
 using Redis.Api.Repository;
+using Redis.Api.Services;
 using RedisCache;
 using StackExchange.Redis;
 
@@ -13,7 +14,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("mydatabase"));
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductRepository >(options=>
+{
+    var appDbContext = options.GetRequiredService<AppDbContext>();
+    var productRepository = new ProductRepository(appDbContext);
+   
+    return new ProductRepositoryWithChache(productRepository, options.GetRequiredService<RedisService>());
+
+});
 builder.Services.AddSingleton<RedisService>(options =>
 {
    return new RedisService(builder.Configuration["CacheOptions:Url"]);
@@ -24,6 +32,7 @@ builder.Services.AddSingleton<IDatabase>(options=>
     var redisService = options.GetRequiredService<RedisService>();
     return redisService.GetDb(0);
 });
+builder.Services.AddScoped<IProductService, ProductService>();
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
